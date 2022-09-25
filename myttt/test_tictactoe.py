@@ -1,14 +1,11 @@
-from ctypes import util
 import math
 from copy import deepcopy
 import numpy as np
 
+
 X = "X"
 O = "O"
-
-X_win = 0
-O_win = 0
-draw = 0
+chance = {}
 
 #helper
 def get_diagonal(board):
@@ -90,46 +87,40 @@ def utility(board):
         return 0 
 
 
-def max_alpha_beta_pruning(board ,alpha,beta):
+def max_alpha_beta_pruning(board ,alpha,beta,layer):
     if(terminal(board)== True):
-        if utility(board) == 1:
-            global X_win
-            X_win += 1
-        elif utility(board) == -1:
-            global O_win
-            O_win += 1
-        else:
-            global draw
-            draw += 1
         return utility(board) , None
+
+    global chance
+
     vall=float("-inf")
     best=None
     for action in actions(board):
-        min_val=min_alpha_beta_pruning(result(board ,action), alpha, beta)[0]
-        if( min_val > vall):
+        min_val=min_alpha_beta_pruning(result(board ,action), alpha, beta,layer+1)[0]
+        if layer == 0:
+            chance[action] = min_val
+
+        if( min_val > vall): 
             best=action
             vall=min_val
         alpha=max(alpha,vall)
         if (beta <= alpha):
             break
-    return vall,best                                  
+    return vall,best                               
 
-def min_alpha_beta_pruning(board ,alpha,beta):
+def min_alpha_beta_pruning(board ,alpha,beta, layer):
     if(terminal(board)== True): 
-        if utility(board) == 1:
-            global X_win
-            X_win += 1
-        elif utility(board) == -1:
-            global O_win
-            O_win += 1
-        else:
-            global draw
-            draw += 1
         return utility(board) , None
+
+    global chance
+
     vall=float("inf")
     best=None
     for action in actions(board):
-        max_val=max_alpha_beta_pruning(result(board ,action), alpha, beta)[0]
+        max_val=max_alpha_beta_pruning(result(board ,action), alpha, beta,layer+1)[0]
+        if layer == 0:
+            chance[action] = max_val
+        
         if( max_val < vall):
             best=action
             vall=max_val
@@ -143,31 +134,18 @@ def minimax(board):
     if terminal(board):
         return None
     if(player(board)==X):
-        return max_alpha_beta_pruning(board ,float("-inf") ,float("inf"))[1]
+        return max_alpha_beta_pruning(board ,float("-inf") ,float("inf"), 0)[1]
     elif(player(board) == O):
-        return min_alpha_beta_pruning(board , float("-inf"), float("inf"))[1]
+        return min_alpha_beta_pruning(board , float("-inf"), float("inf"), 0)[1]
     else:
         raise Exception("Error in Caculating Optimal Move")
 
 def show_AI_chances(board):
-    AI_mark = player(board)
-    chance = {}
-    for action in actions(board):
-        global O_win, X_win, draw
-        O_win, X_win, draw = 0,0,0
-        minimax(result(board, action))
-        if terminal(result(board, action)):
-            chance[action] = AI_mark+ "'s win move"
-        if AI_mark == "X":
-            try:
-                chance[action] = round((X_win)/ (X_win+O_win+draw), 3)
-            except ZeroDivisionError:
-                print('Game Over')
-        elif AI_mark == "O":
-            try:
-                chance[action] = round((O_win)/ (X_win+O_win+draw),3)
-            except ZeroDivisionError:
-                print('Game Over ===================================================')
-                break
-        print('action: ', action, 'x: ', X_win, 'o: ', O_win, 'draw: ', draw, 'chance: ', chance[action])
+    global chance
+    for row in range(3):
+        for col in range(3):
+            if board[row][col] != None and (row,col) in chance:
+                chance.pop((row,col))
+    for c in chance:
+        print(c, chance[c])
     return chance

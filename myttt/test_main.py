@@ -33,6 +33,7 @@ board = [   [None, None, None],
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 mediumFont = pygame.font.Font(None, 28)
 welcomePage = pygame.transform.scale(pygame.image.load('storyboard6.png').convert(), (WIDTH, HEIGHT))
+pygame.display.set_caption('Tic-Tac-Toe')
 
 # pygame drawings====================================================================================================
 def draw_lines():
@@ -122,13 +123,13 @@ def show_numbers_in_board(chances):
         screen.blit(score, scoreRect)
         pygame.display.flip()
 
-    pygame.time.wait(1000)
+    pygame.time.wait(10000)
     for chance in chances:
         i, j =  chance
         x_pos = j*200 + 100
         y_pos = i*200 + 100
         score1 = mediumFont.render(str(chances[chance]), True, WHITE)
-        # eraser that covers the numbers
+        # new numbers that covers the old ones
         era = score1.get_rect() 
         era.center = (x_pos, y_pos)
         pygame.draw.rect(screen, BG_COLOR, era, 0)
@@ -153,7 +154,7 @@ while True:
         titleRect = title.get_rect()
         titleRect.center = ((WIDTH / 2), 50)
         screen.blit(title, titleRect)
-            # Draw chose player buttons
+            # Draw choose player buttons
         playXButton = pygame.Rect((WIDTH/2)-titleRect.width/2 , (HEIGHT / 3), WIDTH / 4, 40)
         playX = mediumFont.render("1st: Press X", True, BLACK)
         playXRect = playX.get_rect()
@@ -167,7 +168,7 @@ while True:
         playORect.center = playOButton.center
         pygame.draw.rect(screen, BG_COLOR, playOButton) 
         screen.blit(playO, playORect)
-            # hit X play as x and hit O play as o
+            # hit X play as x and hit O play as O
         key = pygame.key.get_pressed()
         if key[pygame.K_x]:
             user = ttt.X
@@ -184,9 +185,12 @@ while True:
         # Check for AI move
         if user != player and not game_over:
             if ai_turn:
+                
+                best_move = ttt.minimax(board)
                 chance_map = ttt.show_AI_chances(board)
-                show_numbers_in_board(chance_map)               
-                board = ttt.result(board, ttt.minimax(board))
+                show_numbers_in_board(chance_map)             
+                board = ttt.result(board, best_move)
+
                 draw_figures()
                 check_win(player)
                 ai_turn = False
